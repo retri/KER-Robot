@@ -1,0 +1,93 @@
+{
+  "schema_version": "0.1.0",
+  "namespace": "/ker",
+  "frames": [
+    "base_link",
+    "torso_link",
+    "neck_link",
+    "head_link"
+  ],
+  "topics": [
+    {
+      "name": "/ker/system/safety_state",
+      "type": "ker_msgs/msg/SafetyState",
+      "publisher": "motion_safety_gate",
+      "qos": {
+        "reliability": "reliable",
+        "durability": "transient_local",
+        "depth": 1
+      }
+    },
+    {
+      "name": "/ker/system/heartbeat",
+      "type": "ker_msgs/msg/Heartbeat",
+      "publisher": "system_supervisor",
+      "qos": {
+        "reliability": "reliable",
+        "durability": "volatile",
+        "depth": 5
+      }
+    },
+    {
+      "name": "/ker/motion/joint_command_raw",
+      "type": "ker_msgs/msg/JointCommand",
+      "publisher": "expression_planner",
+      "qos": {
+        "reliability": "reliable",
+        "durability": "volatile",
+        "depth": 5
+      }
+    },
+    {
+      "name": "/ker/motion/joint_command_safe",
+      "type": "ker_msgs/msg/JointCommand",
+      "publisher": "motion_safety_gate",
+      "qos": {
+        "reliability": "reliable",
+        "durability": "volatile",
+        "depth": 1
+      }
+    },
+    {
+      "name": "/ker/motion/joint_state",
+      "type": "sensor_msgs/msg/JointState",
+      "publisher": "hardware_bridge",
+      "qos": {
+        "reliability": "best_effort",
+        "durability": "volatile",
+        "depth": 10
+      }
+    },
+    {
+      "name": "/ker/expression/request",
+      "type": "ker_msgs/msg/ExpressionRequest",
+      "publisher": "dialog_orchestrator",
+      "qos": {
+        "reliability": "reliable",
+        "durability": "volatile",
+        "depth": 10
+      }
+    },
+    {
+      "name": "/ker/diagnostics",
+      "type": "diagnostic_msgs/msg/DiagnosticArray",
+      "publisher": "system_supervisor",
+      "qos": {
+        "reliability": "reliable",
+        "durability": "volatile",
+        "depth": 20
+      }
+    }
+  ],
+  "required_command_fields": [
+    "stamp",
+    "source",
+    "sequence",
+    "expires_at",
+    "correlation_id"
+  ],
+  "notes": [
+    "Draft targets require R3/R4/R6/Q1 review",
+    "No real hardware safety claim"
+  ]
+}
