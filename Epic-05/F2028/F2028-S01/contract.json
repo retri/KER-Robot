@@ -1,5 +1,5 @@
 {
-  "schema": "expression-v1",
+  "schema": "perception-v1",
   "feature": "F2028",
   "data": "touch sensor/region/contact id·pressed/released·seq·monotonic timestamp·debounce/long/stuck bounds·owner/epoch·sensor health·driver/version/calibration.",
   "interface": "실제 capacitive/pressure/touchscreen driver → TouchFSM event → interaction/표현/대화. 안전 긴급 정지는 별도 hardware 경로로 유지한다.",

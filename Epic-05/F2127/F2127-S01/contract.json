@@ -1,5 +1,5 @@
 {
-  "schema": "expression-v1",
+  "schema": "perception-v1",
   "feature": "F2127",
   "data": "DOA angle/unit/confidence·audio timestamp/VAD/echo·visual track id/bearing/quality/timestamp·session epoch·association/ambiguity·head acquisition phase·동의/실제 화자 ground truth.",
   "interface": "F2126 AEC/DOA/VAD → coarse acquire proposal → camera/person/face track → audio-vision association → F2004/F2011 활성 화자 확인·F2133 미세 정렬. track id는 인증 identity가 아니다.",

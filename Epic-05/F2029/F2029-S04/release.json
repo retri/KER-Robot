@@ -8,7 +8,7 @@
   "pending": "실제 detector/카메라/depth/proximity·object/scene/위험 인지·접근 방향/거리·driver/대기 mode event 미구현. 사람 score gate는 obstacle clearance나 지도/SLAM이 아니다.",
   "required": [
     "actual_perception_tracking_quality",
-    "privacy_auth_cancel_events",
+    "privacy_auth_consent_epoch_delete_events",
     "physical_robot_integration",
     "actual_user_validation",
     "Q1_R1_review_rollback"

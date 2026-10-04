@@ -8,7 +8,7 @@
   "pending": "실제 touch driver/sensor calibration·double-tap/pressure·contact watchdog/즉시 long 이벤트·자동 사용자/철회 event 미연결. release 기반 Prototype은 고착 중 자동 알림/정지를 구현하지 않는다.",
   "required": [
     "actual_perception_tracking_quality",
-    "privacy_auth_cancel_events",
+    "privacy_auth_consent_epoch_delete_events",
     "physical_robot_integration",
     "actual_user_validation",
     "Q1_R1_review_rollback"

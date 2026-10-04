@@ -8,7 +8,7 @@
   "pending": "실제 camera/YuNet/SFace/embedding/liveness·production auth/동의 이벤트·암호화 DB/backup purge·사용자 dataset 미연결. fixture 8차원/threshold는 실제 모델 계약/품질이 아니다. 후보를 authenticated=false로 반환한다.",
   "required": [
     "actual_perception_tracking_quality",
-    "privacy_auth_cancel_events",
+    "privacy_auth_consent_epoch_delete_events",
     "physical_robot_integration",
     "actual_user_validation",
     "Q1_R1_review_rollback"

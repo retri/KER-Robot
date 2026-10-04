@@ -1,5 +1,5 @@
 {
-  "schema": "expression-v1",
+  "schema": "perception-v1",
   "feature": "F2133",
   "data": "owner/epoch·track id·DOA/camera extrinsics/FOV·normalized face center·measured joint yaw/time/dt·quality·joint limits/velocity/acceleration/jerk·clearance/stop/watchdog feedback.",
   "interface": "F2127 track/DOA → measured yaw/vision geometry → bounded target proposal → Epic-06 ROS safety controller/FollowJointTrajectory feedback; Epic-04 gaze와 시선 계약. 현재 executable=false.",
