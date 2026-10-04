@@ -18,7 +18,7 @@ class Simulator(Node):
   self.service=self.create_service(SetBool,'/ker/sim/enable_mock',self.enable_mock)
   self.timer=self.create_timer(.05,self.tick)
  def diagnostic(self,result,seq=-1):
-  status=DiagnosticStatus();status.name='ker_mock';status.hardware_id='no_physical_hardware';status.level=0 if result=='accepted' else 1;status.message=result
+  status=DiagnosticStatus();status.name='ker_mock';status.hardware_id='no_physical_hardware';status.level=DiagnosticStatus.OK if result=='accepted' else DiagnosticStatus.WARN;status.message=result
   status.values=[KeyValue(key='request_seq',value=str(seq)),KeyValue(key='scope',value='mock_only'),KeyValue(key='generation',value=str(self.gate.generation)),KeyValue(key='physical_stop_confirmed',value='false')]
   m=DiagnosticArray();m.header.stamp=self.get_clock().now().to_msg();m.status=[status];self.diag_pub.publish(m)
  def command(self,msg):
