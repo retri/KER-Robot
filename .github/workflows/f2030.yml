@@ -1,0 +1,26 @@
+name: F2030 ROS2 contract checks
+
+on:
+  pull_request:
+    paths:
+      - "Epic-06/F2030/**"
+      - ".github/workflows/f2030.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate topic contract
+        run: python Epic-06/F2030/F2030-S01/scripts/validate_contract.py
+      - name: Run S01 tests
+        run: python -m unittest discover -s Epic-06/F2030/F2030-S01/tests -v
+      - name: Run S02 tests
+        run: python -m unittest discover -s Epic-06/F2030/F2030-S02/tests -v
