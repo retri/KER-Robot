@@ -1,5 +1,9 @@
 """Epic-02 development prototype. No actual Cloud, LLM, STT, TTS or robot IO."""
 import copy,math,threading,unicodedata
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'shared'))
+from lumira_locale import LanguageSession, message
 
 class Rejected(ValueError): pass
 def need(ok,reason='INVALID_INPUT'):
@@ -33,14 +37,19 @@ class PolicyEngine:  # F2205: classification and authority must come from truste
         return {'route':route,'reason':reason,'policy_version':'prototype-1'}
 
 class Gateway:  # F2206: deliberately uses fake adapters only
-    def __init__(self,adapters):
+    def __init__(self,adapters,locale_adapters=None):
         need(isinstance(adapters,dict) and 0<len(adapters)<=4)
         for k in adapters:need(k in ('openai_sample','gemini_sample','local_sample'),'PROVIDER_NOT_APPROVED')
-        self.adapters=dict(adapters)
-    def complete(self,provider,request_id,max_output=256):
+        self.adapters=dict(adapters);self.locale_adapters=dict(locale_adapters or {})
+    def complete(self,provider,request_id,max_output=256,locale='ko-KR'):
+        need(locale in ('ko-KR','en-US'),'LANGUAGE_NOT_SUPPORTED')
         ident(request_id);integer(max_output,1,2000)
         need(provider in self.adapters,'PROVIDER_NOT_APPROVED')
-        try:r=self.adapters[provider](request_id,max_output)
+        need(locale=='ko-KR' or provider in self.locale_adapters,'LOCALE_ADAPTER_NOT_CONNECTED')
+        try:
+            if provider in self.locale_adapters:
+                r=self.locale_adapters[provider](request_id,max_output,locale)
+            else:r=self.adapters[provider](request_id,max_output)
         except Exception:raise Rejected('PROVIDER_FAILED') from None
         need(isinstance(r,dict) and set(r)=={'text','usage_tokens'},'INVALID_PROVIDER_RESPONSE')
         text(r['text']);integer(r['usage_tokens'],0,max_output)
@@ -122,7 +131,8 @@ class PrivacyGuard:  # F2211: this is enforcement, not semantic PII classificati
 
 class Recovery:  # F2212: no streaming or retry timers; one final result per turn
     def __init__(self):self.finalized=set()
-    def complete(self,turn,adapters,emitted=False):
+    def complete(self,turn,adapters,emitted=False,locale='ko-KR'):
+        need(locale in ('ko-KR','en-US'),'LANGUAGE_NOT_SUPPORTED')
         ident(turn);flag(emitted);need(turn not in self.finalized,'DUPLICATE_TURN')
         need(not emitted,'PARTIAL_OUTPUT_REQUIRES_CANCEL')
         need(isinstance(adapters,list) and 0<len(adapters)<=3)
@@ -133,7 +143,7 @@ class Recovery:  # F2212: no streaming or retry timers; one final result per tur
             except Exception:continue
             self.finalized.add(turn);return {'text':r,'attempts':attempted,'simulated':True}
         self.finalized.add(turn)
-        return {'text':'연결이 원활하지 않습니다. 기본 안내를 도와드릴게요.','attempts':attempted,'backend':'local_template'}
+        return {'text':message('connection',locale),'attempts':attempted,'backend':'local_template'}
 
 class QualityTelemetry:  # F2213: allowlisted numeric metadata, never transcripts
     def __init__(self):self.rows=[]
@@ -204,13 +214,14 @@ class LanguageResolver:  # F2013: capability intersection only
         return requested
 
 class SafetyPolicy:  # F2014: risk tags must come from an independent trusted classifier
-    def review(self,age,risk):
+    def review(self,age,risk,locale='ko-KR'):
+        need(locale in ('ko-KR','en-US'),'LANGUAGE_NOT_SUPPORTED')
         need(age in ('child','adult','elder','unknown'))
         need(risk in ('clear','medical','crisis','harm','private','unknown'))
-        if risk in ('harm','private'):action,reply='deny','그 요청은 도와드릴 수 없습니다.'
-        elif risk=='crisis':action,reply='local_guidance','지금 주변의 믿을 수 있는 사람에게 도움을 요청해 주세요. 저는 연락을 대신 실행하지 않았습니다.'
-        elif risk=='medical':action,reply='local_guidance','정확한 판단은 의료 전문가와 상의해 주세요.'
-        elif risk=='unknown' or age=='unknown':action,reply='local_guidance','기본 안내부터 도와드릴게요.'
+        if risk in ('harm','private'):action,reply='deny',message('deny',locale)
+        elif risk=='crisis':action,reply='local_guidance',message('crisis',locale)
+        elif risk=='medical':action,reply='local_guidance',message('medical',locale)
+        elif risk=='unknown' or age=='unknown':action,reply='local_guidance',message('guidance',locale)
         else:action,reply='allow',None
         return {'action':action,'safe_reply':reply,'policy_version':'prototype-1','semantic_classifier_connected':False}
 
@@ -245,16 +256,17 @@ class HybridRouter:  # F2123: combines process-local snapshots, not live distrib
 
 class Dialogue:  # F2010: integrated routing + tagged safety + fake Gateway + session fence
     def __init__(self,session,gateway):self.session=session;self.gateway=gateway
-    def answer(self,actor,epoch,turn,x,age='unknown',risk='unknown',provider='openai_sample'):
+    def answer(self,actor,epoch,turn,x,age='unknown',risk='unknown',provider='openai_sample',locale='ko-KR'):
+        need(locale in ('ko-KR','en-US'),'LANGUAGE_NOT_SUPPORTED')
         self.session.check(actor,epoch);ident(turn);need(turn not in self.session.turns,'DUPLICATE_TURN')
-        route=HybridRouter().route(x,provider);safety=SafetyPolicy().review(age,risk)
+        route=HybridRouter().route(x,provider);safety=SafetyPolicy().review(age,risk,locale)
         if safety['action']!='allow':reply=safety['safe_reply'];backend='local_safety_template'
         elif route['route'] in ('cloud','hybrid'):
-            result=self.gateway.complete(provider,turn);reply=result['text'];backend=provider
-        else:reply='연결 없이 기본 안내를 도와드릴게요.';backend='local_template'
+            result=self.gateway.complete(provider,turn,locale=locale);reply=result['text'];backend=provider
+        else:reply=message('offline',locale);backend='local_template'
         # Recheck after adapter returned; a switch during generation must block output.
         self.session.check(actor,epoch);self.session.append(actor,epoch,turn,reply)
-        return {'text':reply,'backend':backend,'epoch':epoch,'route':route,'tts_executed':False,'simulated':True}
+        return {'text':reply,'locale':locale,'backend':backend,'epoch':epoch,'route':route,'tts_executed':False,'simulated':True}
 
 class AudioLab:  # F2126: simple reference calculations, NOT adaptive AEC or TDOA estimation
     def pcm(self,samples):

@@ -12,6 +12,9 @@ def main():
     for path in sorted(ROOT.glob('F*/F*-S03')):
         part=unittest.defaultTestLoader.discover(str(path),pattern='test_*.py',top_level_dir=str(path))
         counts[path.parent.name]=sum(1 for _ in leaves(part));suite.addTests(part)
+    shared_tests=ROOT.parent/'tests'/'bilingual'
+    part=unittest.defaultTestLoader.discover(str(shared_tests),pattern='test_*.py',top_level_dir=str(shared_tests))
+    counts['BILINGUAL']=sum(1 for _ in leaves(part));suite.addTests(part)
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     x={'sensitivity':'public','safety_command':False,'cloud_consent':True,'visual_needed':False,'network_ok':True,'credits':1,'robot_ready':True}
     sample=[]
